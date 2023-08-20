@@ -73,10 +73,13 @@ def home(request):
         Q(description__icontains = q)
     )
     topics = Topic.objects.all()
+    room_messages = Message.objects.all()
+
     context = {
         'rooms': rooms,
         'topics': topics,
-        'rooms_count': rooms.count()
+        'rooms_count': rooms.count(),
+        'room_messages': room_messages
     }
     return render(request, 'base/home.html', context)
 
@@ -142,4 +145,16 @@ def deleteRoom(request, pk):
         return redirect('home')
     
     return render(request, 'base/delete.html', {'obj': room.name})
+
+@login_required(login_url='/login')
+def deleteMessage(request, pk):
+    message = Message.objects.get(id = pk)
+
+    if request.user != message.user:
+        return HttpResponse('You have stumbled upon wrong place')
     
+    if request.method == 'POST':
+        message.delete()
+        return redirect('home')
+    
+    return render(request, 'base/delete.html', {'obj': message.body})
